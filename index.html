@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>오운완</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div id="app">
+
+  <!-- 홈 화면 -->
+  <section id="view-home" class="view">
+    <header class="app-header">
+      <h1>오늘도 오운완</h1>
+    </header>
+
+    <div class="routine-picker" id="routine-picker" hidden>
+      <label for="routine-select">오늘의 루틴</label>
+      <select id="routine-select"></select>
+    </div>
+
+    <button id="btn-start-workout" class="btn btn-primary btn-big">운동 시작</button>
+
+    <div class="card">
+      <h2>최근 운동 기록</h2>
+      <ul id="history-list" class="history-list">
+        <li class="empty">아직 기록이 없어요.</li>
+      </ul>
+    </div>
+
+    <div class="home-links">
+      <button id="btn-goto-routine" class="btn btn-secondary">루틴 설정</button>
+      <button id="btn-goto-backup" class="btn btn-secondary">백업</button>
+    </div>
+  </section>
+
+  <!-- 루틴 설정 화면 -->
+  <section id="view-routine" class="view" hidden>
+    <header class="app-header">
+      <button class="btn-back" data-back="view-home">&larr;</button>
+      <h1>루틴 설정</h1>
+    </header>
+
+    <div class="routine-tabs" id="routine-tabs"></div>
+    <button id="btn-add-routine" class="btn btn-link">+ 새 루틴(예: 상체/하체)</button>
+
+    <ul id="exercise-list" class="exercise-list"></ul>
+
+    <button id="btn-add-exercise" class="btn btn-primary">+ 운동 추가</button>
+  </section>
+
+  <!-- 운동 추가/수정 폼 -->
+  <section id="view-exercise-form" class="view" hidden>
+    <header class="app-header">
+      <button class="btn-back" data-back="view-routine">&larr;</button>
+      <h1 id="exercise-form-title">운동 추가</h1>
+    </header>
+
+    <form id="exercise-form">
+      <label>운동 이름
+        <input type="text" id="ex-name" placeholder="예: 레그 프레스" required />
+      </label>
+
+      <label>세트 수
+        <input type="number" id="ex-sets" min="1" value="5" required />
+      </label>
+
+      <label>세트 간 휴식(초)
+        <input type="number" id="ex-rest" min="0" value="60" required />
+      </label>
+
+      <label class="checkbox-row">
+        <input type="checkbox" id="ex-superset" />
+        슈퍼세트로 묶기 (두 부위 번갈아 진행)
+      </label>
+
+      <div id="ex-parts"></div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">저장</button>
+        <button type="button" id="btn-delete-exercise" class="btn btn-danger" hidden>삭제</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- 운동 진행 화면 -->
+  <section id="view-workout" class="view" hidden>
+    <header class="app-header workout-header">
+      <span id="stopwatch">00:00</span>
+      <button id="btn-quit-workout" class="btn-quit">종료</button>
+    </header>
+
+    <div id="workout-body">
+      <div class="exercise-progress" id="exercise-progress"></div>
+
+      <div class="card exercise-card">
+        <h2 id="wk-exercise-name">-</h2>
+        <div id="wk-set-label" class="set-label">1 / 5 세트</div>
+        <div id="wk-target" class="target-info"></div>
+        <button id="btn-complete-set" class="btn btn-primary btn-big">세트 완료</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 백업 화면 -->
+  <section id="view-backup" class="view" hidden>
+    <header class="app-header">
+      <button class="btn-back" data-back="view-home">&larr;</button>
+      <h1>백업</h1>
+    </header>
+
+    <div class="card">
+      <p>휴대폰을 바꾸기 전에 내보내기를 눌러 백업 파일을 저장해두세요. 새 휴대폰에서는 가져오기로 복원할 수 있어요.</p>
+      <button id="btn-export" class="btn btn-primary">내보내기</button>
+      <label class="btn btn-secondary file-btn">
+        가져오기
+        <input type="file" id="file-import" accept="application/json" hidden />
+      </label>
+    </div>
+  </section>
+
+</div>
+
+<!-- 휴식 타이머 오버레이 -->
+<div id="rest-overlay" class="overlay" hidden>
+  <div class="overlay-content">
+    <p class="overlay-label">휴식 중</p>
+    <div id="rest-countdown" class="rest-countdown">30</div>
+    <button id="btn-skip-rest" class="btn btn-secondary">건너뛰기</button>
+  </div>
+</div>
+
+<!-- 격려 메시지 토스트 -->
+<div id="message-toast" class="toast" hidden></div>
+
+<!-- 이어하기 확인 -->
+<div id="resume-overlay" class="overlay" hidden>
+  <div class="overlay-content">
+    <p>진행 중이던 운동이 있어요. 이어서 할까요?</p>
+    <div class="form-actions">
+      <button id="btn-resume-yes" class="btn btn-primary">이어하기</button>
+      <button id="btn-resume-no" class="btn btn-secondary">새로 시작</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,378 @@
+:root {
+  --bg: #0f1115;
+  --card: #1a1d24;
+  --text: #f2f3f5;
+  --muted: #9aa1ac;
+  --primary: #ff5d3b;
+  --primary-dark: #e0431f;
+  --danger: #e0431f;
+  --border: #2a2e37;
+}
+
+* { box-sizing: border-box; }
+
+[hidden] { display: none !important; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#app {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  padding: 16px 16px 40px;
+}
+
+.view[hidden] { display: none; }
+
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  position: relative;
+}
+
+.app-header h1 {
+  font-size: 20px;
+  margin: 0;
+}
+
+.btn-back {
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 22px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.btn {
+  display: inline-block;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 18px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+  width: 100%;
+}
+
+.btn-primary:active { background: var(--primary-dark); }
+
+.btn-big {
+  padding: 18px;
+  font-size: 18px;
+  margin: 12px 0;
+}
+
+.btn-secondary {
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  flex: 1;
+}
+
+.btn-danger {
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: 14px;
+  padding: 8px 0;
+  cursor: pointer;
+}
+
+.card {
+  background: var(--card);
+  border-radius: 14px;
+  padding: 16px;
+  margin: 16px 0;
+}
+
+.card h2 {
+  font-size: 15px;
+  color: var(--muted);
+  margin: 0 0 8px;
+  font-weight: 600;
+}
+
+.history-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 14px;
+}
+
+.history-list li {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.history-list li:last-child { border-bottom: none; }
+.history-list .empty { color: var(--muted); justify-content: center; }
+
+.home-links {
+  display: flex;
+  gap: 8px;
+}
+
+.routine-picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.routine-picker select {
+  flex: 1;
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.routine-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.routine-tab {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.routine-tab.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+.exercise-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.exercise-item {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+.exercise-item .ex-name {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.exercise-item .ex-meta {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.ex-order-btns {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.btn-order {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+input[type="text"], input[type="number"] {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+  color: var(--text);
+  font-size: 16px;
+}
+
+.checkbox-row {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.checkbox-row input { width: 18px; height: 18px; }
+
+.part-block {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.part-block-title {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.form-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.file-btn {
+  display: block;
+  text-align: center;
+  margin-top: 8px;
+  cursor: pointer;
+}
+
+.workout-header {
+  justify-content: space-between;
+}
+
+#stopwatch {
+  font-size: 22px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.btn-quit {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.exercise-progress {
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.exercise-card {
+  text-align: center;
+}
+
+.exercise-card h2 {
+  font-size: 22px;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.set-label {
+  font-size: 16px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.target-info {
+  font-size: 15px;
+  margin-bottom: 12px;
+}
+
+.target-info .part-row {
+  padding: 4px 0;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.overlay[hidden] { display: none; }
+
+.overlay-content {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 28px;
+  text-align: center;
+  max-width: 320px;
+}
+
+.overlay-label {
+  color: var(--muted);
+  margin: 0 0 12px;
+}
+
+.rest-countdown {
+  font-size: 56px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 16px;
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 32px;
+  transform: translateX(-50%);
+  background: var(--primary);
+  color: #fff;
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-size: 15px;
+  max-width: 90vw;
+  text-align: center;
+  z-index: 60;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+
+.toast[hidden] { display: none; }
