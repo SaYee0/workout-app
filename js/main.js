@@ -27,6 +27,22 @@ import {
   enableDragReorder,
 } from './ui.js';
 
+// Temporary debug aid: surface uncaught errors instead of failing silently,
+// so a broken tap can actually be reported back with a real error message.
+window.addEventListener('error', (e) => {
+  alert('오류가 발생했어요: ' + e.message);
+});
+window.addEventListener('unhandledrejection', (e) => {
+  alert('오류가 발생했어요: ' + (e.reason?.message || e.reason));
+});
+
+// Some mobile browsers restore the page from a back-forward cache instead of
+// re-running scripts, which can leave in-memory state stale. Force a real
+// reload in that case so module state always starts clean.
+window.addEventListener('pageshow', (e) => {
+  if (e.persisted) window.location.reload();
+});
+
 let state = load();
 ensureSeeded(state);
 save(state);
