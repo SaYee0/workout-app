@@ -11,13 +11,21 @@ import {
 import { GYM_ARRIVAL_MESSAGE, pickFinalMessage } from './messages.js';
 import {
   createSession,
-  currentExercise,
+  isSessionComplete,
   completeSet,
-  skipRest,
+  endRest,
   elapsedSeconds,
   restRemainingSeconds,
 } from './workout.js';
-import { formatMMSS, formatDurationKorean, formatDateKorean, showView, showToast, showMessageQueue } from './ui.js';
+import {
+  formatMMSS,
+  formatDurationKorean,
+  formatDateKorean,
+  showView,
+  showToast,
+  showMessageQueue,
+  enableDragReorder,
+} from './ui.js';
 
 let state = load();
 ensureSeeded(state);
@@ -112,35 +120,33 @@ function renderExerciseList() {
   }
   list.innerHTML = exercises
     .map(
-      (ex, idx) => `
-      <li class="exercise-item" data-id="${ex.id}" data-idx="${idx}">
-        <div class="ex-name">${escapeAttr(ex.name)}</div>
-        <div class="ex-meta">${escapeAttr(partsSummary(ex))} · ${ex.sets}세트 · 휴식 ${ex.restSeconds}초</div>
-        <div class="ex-order-btns">
-          <button class="btn-order" data-dir="-1">▲</button>
-          <button class="btn-order" data-dir="1">▼</button>
+      (ex) => `
+      <li class="exercise-item" data-id="${ex.id}">
+        <span class="drag-handle">☰</span>
+        <div class="exercise-item-body">
+          <div class="ex-name">${escapeAttr(ex.name)}</div>
+          <div class="ex-meta">${escapeAttr(partsSummary(ex))} · ${ex.sets}세트 · 휴식 ${ex.restSeconds}초</div>
         </div>
       </li>`
     )
     .join('');
 
-  list.querySelectorAll('.exercise-item').forEach((li) => {
-    li.addEventListener('click', (e) => {
-      if (e.target.classList.contains('btn-order')) return;
-      openExerciseForm(li.dataset.id);
-    });
-    li.querySelectorAll('.btn-order').forEach((btn) => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const idx = Number(li.dataset.idx);
-        const dir = Number(btn.dataset.dir);
-        moveExercise(state, editingRoutine, idx, idx + dir);
-        save(state);
-        renderExerciseList();
-      });
+  list.querySelectorAll('.exercise-item-body').forEach((body) => {
+    body.addEventListener('click', () => {
+      openExerciseForm(body.closest('.exercise-item').dataset.id);
     });
   });
 }
+
+enableDragReorder(document.getElementById('exercise-list'), {
+  itemSelector: '.exercise-item',
+  handleSelector: '.drag-handle',
+  onReorder: (oldIndex, newIndex) => {
+    moveExercise(state, editingRoutine, oldIndex, newIndex);
+    save(state);
+    renderExerciseList();
+  },
+});
 
 function renderRoutineView() {
   renderRoutineTabs();
@@ -298,21 +304,90 @@ function persistSession() {
   save(state);
 }
 
+function sessionExercises() {
+  return state.routines[session.routineName] || [];
+}
+
+function getExercise(exerciseId) {
+  return sessionExercises().find((e) => e.id === exerciseId);
+}
+
+function currentExercise() {
+  return getExercise(session.currentExerciseId);
+}
+
+function renderHubList() {
+  const exercises = sessionExercises();
+  const doneCount = exercises.filter((ex) => session.progress[ex.id]?.completed).length;
+  document.getElementById('hub-progress').textContent = `${doneCount} / ${exercises.length} 운동 완료`;
+
+  const list = document.getElementById('workout-hub-list');
+  list.innerHTML = exercises
+    .map((ex) => {
+      const completed = session.progress[ex.id]?.completed;
+      return `
+      <li class="hub-item ${completed ? 'completed' : ''}" data-id="${ex.id}">
+        <span class="drag-handle">☰</span>
+        <div class="hub-item-body">
+          <div class="ex-name">${escapeAttr(ex.name)}</div>
+          <div class="ex-meta">${escapeAttr(partsSummary(ex))} · ${ex.sets}세트</div>
+        </div>
+      </li>`;
+    })
+    .join('');
+
+  list.querySelectorAll('.hub-item-body').forEach((body) => {
+    body.addEventListener('click', () => {
+      openExerciseDetail(body.closest('.hub-item').dataset.id);
+    });
+  });
+}
+
+enableDragReorder(document.getElementById('workout-hub-list'), {
+  itemSelector: '.hub-item',
+  handleSelector: '.drag-handle',
+  onReorder: (oldIndex, newIndex) => {
+    moveExercise(state, session.routineName, oldIndex, newIndex);
+    save(state);
+    renderHubList();
+  },
+});
+
+function openExerciseDetail(exerciseId) {
+  session.currentExerciseId = exerciseId;
+  persistSession();
+  showView('view-workout-exercise');
+  renderExerciseCard();
+  const prog = session.progress[exerciseId];
+  if (prog.resting) {
+    startRestCountdown();
+  }
+}
+
 function renderExerciseCard() {
-  const ex = currentExercise(session);
-  document.getElementById('exercise-progress').textContent = `${session.exerciseIndex + 1} / ${session.exercises.length} 운동`;
+  const ex = currentExercise();
+  const prog = session.progress[ex.id];
   document.getElementById('wk-exercise-name').textContent = ex.name;
-  document.getElementById('wk-set-label').textContent = `${session.setIndex} / ${ex.sets} 세트`;
+  document.getElementById('wk-set-label').textContent = `${prog.setIndex} / ${ex.sets} 세트`;
   const targetEl = document.getElementById('wk-target');
   targetEl.innerHTML = ex.parts
     .map((p) => `<div class="part-row">${p.bodyPart} · ${p.weight}kg x ${p.reps}회</div>`)
     .join('');
 }
 
+document.getElementById('btn-back-to-hub').addEventListener('click', () => {
+  session.currentExerciseId = null;
+  persistSession();
+  renderHubList();
+  showView('view-workout-hub');
+});
+
 function startStopwatch() {
   stopStopwatch();
   const tick = () => {
-    document.getElementById('stopwatch').textContent = formatMMSS(elapsedSeconds(session));
+    const text = formatMMSS(elapsedSeconds(session));
+    document.getElementById('stopwatch-hub').textContent = text;
+    document.getElementById('stopwatch-ex').textContent = text;
   };
   tick();
   stopwatchTimer = setInterval(tick, 500);
@@ -326,13 +401,25 @@ function stopStopwatch() {
 function startRestCountdown() {
   const overlay = document.getElementById('rest-overlay');
   const countdownEl = document.getElementById('rest-countdown');
+  const label = document.getElementById('rest-label');
+  const btn = document.getElementById('btn-skip-rest');
   overlay.hidden = false;
+  overlay.classList.remove('rest-ready');
+  label.textContent = '휴식 중';
+  btn.textContent = '건너뛰기';
+
+  const ex = currentExercise();
 
   const tick = () => {
-    const remaining = restRemainingSeconds(session);
+    const remaining = restRemainingSeconds(session, ex);
     countdownEl.textContent = remaining;
-    if (remaining <= 0) {
-      endRest();
+    if (remaining <= 0 && restTimer) {
+      clearInterval(restTimer);
+      restTimer = null;
+      navigator.vibrate?.(200);
+      overlay.classList.add('rest-ready');
+      label.textContent = '휴식 완료!';
+      btn.textContent = '다음 세트 시작';
     }
   };
   tick();
@@ -345,17 +432,9 @@ function stopRestCountdown() {
   document.getElementById('rest-overlay').hidden = true;
 }
 
-function endRest() {
-  stopRestCountdown();
-  skipRest(session);
-  navigator.vibrate?.(200);
-  persistSession();
-  renderExerciseCard();
-}
-
 document.getElementById('btn-skip-rest').addEventListener('click', () => {
   stopRestCountdown();
-  skipRest(session);
+  endRest(session, currentExercise());
   persistSession();
   renderExerciseCard();
 });
@@ -364,9 +443,14 @@ function messagesFor(exercise) {
   return exercise.parts.map((p) => p.message?.trim() || `${p.bodyPart} 운동, 수고하셨어요!`);
 }
 
-async function finishWorkout(finishedExercise) {
+async function finishWorkout() {
+  if (!session || session.finished) return;
   stopStopwatch();
-  document.getElementById('stopwatch').textContent = formatMMSS(elapsedSeconds(session));
+  session.finished = true;
+  session.finishedAt = Date.now();
+  const finalText = formatMMSS(elapsedSeconds(session));
+  document.getElementById('stopwatch-hub').textContent = finalText;
+  document.getElementById('stopwatch-ex').textContent = finalText;
 
   state.history.push({
     id: `h-${Date.now()}`,
@@ -377,7 +461,6 @@ async function finishWorkout(finishedExercise) {
   state.inProgressSession = null;
   save(state);
 
-  await showMessageQueue(messagesFor(finishedExercise));
   await showToast(pickFinalMessage(), 3200);
 
   session = null;
@@ -386,25 +469,30 @@ async function finishWorkout(finishedExercise) {
 }
 
 async function handleCompleteSet() {
-  const result = completeSet(session);
+  const ex = currentExercise();
+  const result = completeSet(session, ex);
   persistSession();
 
   if (result.event === 'rest-start') {
     startRestCountdown();
     return;
   }
-  if (result.event === 'exercise-complete') {
-    document.getElementById('btn-complete-set').disabled = true;
-    await showMessageQueue(messagesFor(result.exercise));
-    document.getElementById('btn-complete-set').disabled = false;
-    renderExerciseCard();
-    return;
+
+  // exercise-complete
+  const btn = document.getElementById('btn-complete-set');
+  btn.disabled = true;
+  await showMessageQueue(messagesFor(ex));
+
+  if (isSessionComplete(session, sessionExercises())) {
+    await finishWorkout();
+    return; // view has moved to home; no need to re-enable the old button
   }
-  if (result.event === 'workout-complete') {
-    document.getElementById('btn-complete-set').disabled = true;
-    await finishWorkout(result.exercise);
-    document.getElementById('btn-complete-set').disabled = false;
-  }
+
+  btn.disabled = false;
+  session.currentExerciseId = null;
+  persistSession();
+  renderHubList();
+  showView('view-workout-hub');
 }
 
 document.getElementById('btn-complete-set').addEventListener('click', handleCompleteSet);
@@ -428,8 +516,8 @@ function beginNewWorkout() {
   }
   session = createSession(state.activeRoutine, exercises);
   persistSession();
-  showView('view-workout');
-  renderExerciseCard();
+  renderHubList();
+  showView('view-workout-hub');
   startStopwatch();
   showToast(GYM_ARRIVAL_MESSAGE);
 }
@@ -438,11 +526,16 @@ document.getElementById('btn-start-workout').addEventListener('click', beginNewW
 
 function resumeSession(savedSession) {
   session = savedSession;
-  showView('view-workout');
-  renderExerciseCard();
   startStopwatch();
-  if (session.resting) {
-    startRestCountdown();
+  if (session.currentExerciseId) {
+    showView('view-workout-exercise');
+    renderExerciseCard();
+    if (session.progress[session.currentExerciseId].resting) {
+      startRestCountdown();
+    }
+  } else {
+    renderHubList();
+    showView('view-workout-hub');
   }
 }
 
