@@ -37,6 +37,7 @@ let editingExerciseId = null; // null = adding new
 let session = null;
 let stopwatchTimer = null;
 let restTimer = null;
+let restVibratePending = false;
 
 // ---------- HOME ----------
 
@@ -51,6 +52,8 @@ function renderHome() {
   } else {
     picker.hidden = true;
   }
+
+  document.getElementById('btn-start-workout').textContent = session ? '운동 계속하기' : '운동 시작';
 
   const list = document.getElementById('history-list');
   const history = [...state.history].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 10);
@@ -398,6 +401,21 @@ function stopStopwatch() {
   stopwatchTimer = null;
 }
 
+// Vibration requires the page to be visible — if the rest timer naturally
+// ends while the phone screen is off/backgrounded, the vibrate call is
+// silently ignored. Retry once the tab becomes visible again.
+function vibrateWhenPossible(pattern) {
+  const ok = document.hidden ? false : navigator.vibrate?.(pattern);
+  restVibratePending = !ok;
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && restVibratePending) {
+    navigator.vibrate?.(200);
+    restVibratePending = false;
+  }
+});
+
 function startRestCountdown() {
   const overlay = document.getElementById('rest-overlay');
   const countdownEl = document.getElementById('rest-countdown');
@@ -407,6 +425,7 @@ function startRestCountdown() {
   overlay.classList.remove('rest-ready');
   label.textContent = '휴식 중';
   btn.textContent = '건너뛰기';
+  restVibratePending = false;
 
   const ex = currentExercise();
 
@@ -416,7 +435,7 @@ function startRestCountdown() {
     if (remaining <= 0 && restTimer) {
       clearInterval(restTimer);
       restTimer = null;
-      navigator.vibrate?.(200);
+      vibrateWhenPossible(200);
       overlay.classList.add('rest-ready');
       label.textContent = '휴식 완료!';
       btn.textContent = '다음 세트 시작';
@@ -429,6 +448,7 @@ function startRestCountdown() {
 function stopRestCountdown() {
   if (restTimer) clearInterval(restTimer);
   restTimer = null;
+  restVibratePending = false;
   document.getElementById('rest-overlay').hidden = true;
 }
 
@@ -497,13 +517,9 @@ async function handleCompleteSet() {
 
 document.getElementById('btn-complete-set').addEventListener('click', handleCompleteSet);
 
-document.getElementById('btn-quit-workout').addEventListener('click', () => {
-  if (!confirm('운동을 종료할까요? 지금까지의 진행 상황은 저장되지 않아요.')) return;
-  stopStopwatch();
-  stopRestCountdown();
-  session = null;
-  state.inProgressSession = null;
-  save(state);
+// Leaves the workout screen without ending the day's workout — the session
+// (and its stopwatch) keeps running in the background so it can be resumed.
+document.getElementById('btn-back-hub-to-home').addEventListener('click', () => {
   renderHome();
   showView('view-home');
 });
@@ -522,7 +538,14 @@ function beginNewWorkout() {
   showToast(GYM_ARRIVAL_MESSAGE);
 }
 
-document.getElementById('btn-start-workout').addEventListener('click', beginNewWorkout);
+document.getElementById('btn-start-workout').addEventListener('click', () => {
+  if (session) {
+    renderHubList();
+    showView('view-workout-hub');
+  } else {
+    beginNewWorkout();
+  }
+});
 
 function resumeSession(savedSession) {
   session = savedSession;

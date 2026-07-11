@@ -3,8 +3,8 @@
   --card: #1a1d24;
   --text: #f2f3f5;
   --muted: #9aa1ac;
-  --primary: #ff5d3b;
-  --primary-dark: #e0431f;
+  --primary: #3b6fe0;
+  --primary-dark: #2c56b8;
   --danger: #e0431f;
   --border: #2a2e37;
   --done: #3b6fe0;
@@ -306,23 +306,24 @@ input[type="text"], input[type="number"] {
   cursor: pointer;
 }
 
-.workout-header {
-  justify-content: space-between;
+.time-bar {
+  background: var(--card);
+  border-radius: 14px;
+  padding: 14px 16px 18px;
+  text-align: center;
+  margin-bottom: 16px;
 }
 
-#stopwatch {
-  font-size: 22px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-
-.btn-quit {
-  background: none;
-  border: 1px solid var(--border);
+.time-bar-caption {
+  font-size: 14px;
   color: var(--muted);
-  border-radius: 8px;
-  padding: 6px 12px;
-  cursor: pointer;
+  margin-bottom: 6px;
+}
+
+.time-bar-value {
+  font-size: 44px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
 }
 
 .exercise-progress {

@@ -86,10 +86,14 @@
 
   <!-- 오늘의 운동 목록 (허브) -->
   <section id="view-workout-hub" class="view" hidden>
-    <header class="app-header workout-header">
-      <span id="stopwatch-hub">00:00</span>
-      <button id="btn-quit-workout" class="btn-quit">종료</button>
+    <header class="app-header">
+      <button class="btn-back" id="btn-back-hub-to-home">&larr;</button>
     </header>
+
+    <div class="time-bar">
+      <div class="time-bar-caption">온김에 50분만 버티자</div>
+      <div class="time-bar-value" id="stopwatch-hub">00:00</div>
+    </div>
 
     <div class="exercise-progress" id="hub-progress"></div>
     <ul id="workout-hub-list" class="workout-hub-list"></ul>
@@ -97,10 +101,14 @@
 
   <!-- 개별 운동 진행 화면 -->
   <section id="view-workout-exercise" class="view" hidden>
-    <header class="app-header workout-header">
+    <header class="app-header">
       <button class="btn-back" id="btn-back-to-hub">&larr;</button>
-      <span id="stopwatch-ex">00:00</span>
     </header>
+
+    <div class="time-bar">
+      <div class="time-bar-caption">온김에 50분만 버티자</div>
+      <div class="time-bar-value" id="stopwatch-ex">00:00</div>
+    </div>
 
     <div id="workout-body">
       <div class="card exercise-card">
